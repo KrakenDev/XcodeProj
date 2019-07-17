@@ -16,6 +16,7 @@ extension XCScheme {
         public var savedToolIdentifier: String
         public var ignoresPersistentStateOnLaunch: Bool
         public var useCustomWorkingDirectory: Bool
+        public var customWorkingDirectory: String?
         public var debugDocumentVersioning: Bool
         public var commandlineArguments: CommandLineArguments?
         public var environmentVariables: [EnvironmentVariable]?
@@ -33,6 +34,7 @@ extension XCScheme {
                     savedToolIdentifier: String = "",
                     ignoresPersistentStateOnLaunch: Bool = false,
                     useCustomWorkingDirectory: Bool = false,
+                    customWorkingDirectory: String? = nil,
                     debugDocumentVersioning: Bool = true,
                     commandlineArguments: CommandLineArguments? = nil,
                     environmentVariables: [EnvironmentVariable]? = nil,
@@ -43,6 +45,7 @@ extension XCScheme {
             self.shouldUseLaunchSchemeArgsEnv = shouldUseLaunchSchemeArgsEnv
             self.savedToolIdentifier = savedToolIdentifier
             self.useCustomWorkingDirectory = useCustomWorkingDirectory
+            self.customWorkingDirectory = customWorkingDirectory
             self.debugDocumentVersioning = debugDocumentVersioning
             self.commandlineArguments = commandlineArguments
             self.environmentVariables = environmentVariables
@@ -56,6 +59,7 @@ extension XCScheme {
             shouldUseLaunchSchemeArgsEnv = element.attributes["shouldUseLaunchSchemeArgsEnv"].map { $0 == "YES" } ?? true
             savedToolIdentifier = element.attributes["savedToolIdentifier"] ?? ""
             useCustomWorkingDirectory = element.attributes["useCustomWorkingDirectory"] == "YES"
+            customWorkingDirectory = element.attributes["customWorkingDirectory"]
             debugDocumentVersioning = element.attributes["debugDocumentVersioning"].map { $0 == "YES" } ?? true
             ignoresPersistentStateOnLaunch = element.attributes["ignoresPersistentStateOnLaunch"].map { $0 == "YES" } ?? false
 
@@ -92,6 +96,9 @@ extension XCScheme {
                                            "debugDocumentVersioning": debugDocumentVersioning.xmlString,
                                        ])
             super.writeXML(parent: element)
+            if useCustomWorkingDirectory {
+                element.attributes["customWorkingDirectory"] = customWorkingDirectory
+            }
             if ignoresPersistentStateOnLaunch {
                 element.attributes["ignoresPersistentStateOnLaunch"] = ignoresPersistentStateOnLaunch.xmlString
             }
@@ -127,6 +134,7 @@ extension XCScheme {
                 savedToolIdentifier == rhs.savedToolIdentifier &&
                 ignoresPersistentStateOnLaunch == rhs.ignoresPersistentStateOnLaunch &&
                 useCustomWorkingDirectory == rhs.useCustomWorkingDirectory &&
+                customWorkingDirectory == rhs.customWorkingDirectory &&
                 debugDocumentVersioning == rhs.debugDocumentVersioning &&
                 commandlineArguments == rhs.commandlineArguments &&
                 environmentVariables == rhs.environmentVariables &&
