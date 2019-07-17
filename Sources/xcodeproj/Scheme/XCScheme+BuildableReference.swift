@@ -52,9 +52,6 @@ extension XCScheme {
             guard let buildableIdentifier = element.attributes["BuildableIdentifier"] else {
                 throw XCSchemeError.missing(property: "BuildableIdentifier")
             }
-            guard let blueprintIdentifier = element.attributes["BlueprintIdentifier"] else {
-                throw XCSchemeError.missing(property: "BlueprintIdentifier")
-            }
             guard let buildableName = element.attributes["BuildableName"] else {
                 throw XCSchemeError.missing(property: "BuildableName")
             }
@@ -64,6 +61,9 @@ extension XCScheme {
             guard let referencedContainer = element.attributes["ReferencedContainer"] else {
                 throw XCSchemeError.missing(property: "ReferencedContainer")
             }
+            // Blueprint Identifiers are only generated when Xcode opens and processes an .xcodeproj file. However, this doesn't mean that the project file is any less valid. This particular variable is made optional because of that.
+            let blueprintIdentifier = element.attributes["BlueprintIdentifier"] ?? blueprintName + "::" + blueprintName
+
             self.buildableIdentifier = buildableIdentifier
             blueprint = .string(blueprintIdentifier)
             self.buildableName = buildableName
