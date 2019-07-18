@@ -11,6 +11,10 @@ extension XCScheme {
             case custom = "2"
         }
 
+        public enum DebugStyle: String {
+            case root
+        }
+
         public enum GPUFrameCaptureMode: String {
             case autoEnabled = "0"
             case metal = "1"
@@ -39,6 +43,7 @@ extension XCScheme {
         public var selectedDebuggerIdentifier: String
         public var selectedLauncherIdentifier: String
         public var buildConfiguration: String
+        public var debugStyle: DebugStyle?
         public var launchStyle: Style
         public var useCustomWorkingDirectory: Bool
         public var customWorkingDirectory: String?
@@ -75,6 +80,7 @@ extension XCScheme {
                     macroExpansion: BuildableReference? = nil,
                     selectedDebuggerIdentifier: String = XCScheme.defaultDebugger,
                     selectedLauncherIdentifier: String = XCScheme.defaultLauncher,
+                    debugStyle: DebugStyle? = nil,
                     launchStyle: Style = .auto,
                     useCustomWorkingDirectory: Bool = false,
                     customWorkingDirectory: String? = nil,
@@ -103,6 +109,7 @@ extension XCScheme {
             self.runnable = runnable
             self.macroExpansion = macroExpansion
             self.buildConfiguration = buildConfiguration
+            self.debugStyle = debugStyle
             self.launchStyle = launchStyle
             self.selectedDebuggerIdentifier = selectedDebuggerIdentifier
             self.selectedLauncherIdentifier = selectedLauncherIdentifier
@@ -138,7 +145,8 @@ extension XCScheme {
             buildConfiguration = element.attributes["buildConfiguration"] ?? LaunchAction.defaultBuildConfiguration
             selectedDebuggerIdentifier = element.attributes["selectedDebuggerIdentifier"] ?? XCScheme.defaultDebugger
             selectedLauncherIdentifier = element.attributes["selectedLauncherIdentifier"] ?? XCScheme.defaultLauncher
-            launchStyle = element.attributes["launchStyle"].flatMap { Style(rawValue: $0) } ?? .auto
+            debugStyle = element.attributes["debugAsWhichUser"].flatMap(DebugStyle.init)
+            launchStyle = element.attributes["launchStyle"].flatMap(Style.init) ?? .auto
             useCustomWorkingDirectory = element.attributes["useCustomWorkingDirectory"] == "YES"
             customWorkingDirectory = element.attributes["customWorkingDirectory"]
             ignoresPersistentStateOnLaunch = element.attributes["ignoresPersistentStateOnLaunch"] == "YES"
@@ -216,6 +224,9 @@ extension XCScheme {
                 "allowLocationSimulation": allowLocationSimulation.xmlString,
             ]
 
+            if debugStyle != nil {
+                attributes["debugAsWhichUser"] = debugStyle?.rawValue
+            }
             if useCustomWorkingDirectory {
                 attributes["customWorkingDirectory"] = customWorkingDirectory
             }
@@ -311,6 +322,7 @@ extension XCScheme {
                 selectedDebuggerIdentifier == rhs.selectedDebuggerIdentifier &&
                 selectedLauncherIdentifier == rhs.selectedLauncherIdentifier &&
                 buildConfiguration == rhs.buildConfiguration &&
+                debugStyle == rhs.debugStyle &&
                 launchStyle == rhs.launchStyle &&
                 useCustomWorkingDirectory == rhs.useCustomWorkingDirectory &&
                 customWorkingDirectory == rhs.customWorkingDirectory &&

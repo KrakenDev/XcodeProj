@@ -43,6 +43,7 @@ let attributesOrder: [String: [String]] = [
         "selectedLauncherIdentifier",
         "language",
         "region",
+        "debugAsWhichUser",
         "launchStyle",
         "useCustomWorkingDirectory",
         "customWorkingDirectory",
