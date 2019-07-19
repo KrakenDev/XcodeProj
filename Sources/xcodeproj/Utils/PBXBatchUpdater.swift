@@ -172,7 +172,7 @@ public final class PBXBatchUpdater {
         } else {
             objectReferences = Dictionary(uniqueKeysWithValues:
                 try objects.fileReferences.compactMap {
-                    let fullPath = try $0.value.fullPath(sourceRoot: sourceRoot)!
+                    guard let fullPath = try $0.value.fullPath(sourceRoot: sourceRoot) else { return nil }
                     return (fullPath, $0.key)
             })
             references = objectReferences
