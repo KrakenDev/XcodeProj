@@ -7,23 +7,36 @@ extension XCScheme {
         // MARK: - Attributes
 
         public var userState: UserState
-        public var autocreation: BuildableAutocreation
+        public var autocreateState: AutocreateState
 
         // MARK: - Init
 
         public init(schemes: [XCScheme]) {
             self.userState = UserState(schemes: schemes)
-            self.autocreation = BuildableAutocreation(schemes: schemes)
+            self.autocreateState = AutocreateState(schemes: schemes)
         }
 
         init(path: Path) throws {
             let xcschemeName = XCScheme.isa.lowercased()
             let managementName = Management.isa.lowercased()
             let plistPath = path + "\(xcschemeName + managementName).plist"
-            let document = try AEXMLDocument(xml: try plistPath.read())
+            if let document = try? AEXMLDocument(xml: try plistPath.read()) {
+                userState = try UserState(element: document["SchemeUserState"])
+                autocreateState = try AutocreateState(element: document["SuppressBuildableAutocreation"])
+            } else {
+                let basePath = Path(path.string.replacingOccurrences(
+                    of: XCUserData.schemesPath.string, with: ""))
+                let sharedData = try XCSharedData(path: basePath)
+                let userSchemes = XCUserData.schemes(from: path)
+                let sharedSchemes = sharedData.schemes
 
-            userState = try UserState(element: document["SchemeUserState"])
-            autocreation = try BuildableAutocreation(element: document["SuppressBuildableAutocreation"])
+                let pbxProj = try PBXProj.from(path: basePath)
+                autocreateState = AutocreateState(schemes: userSchemes)
+                userState = UserState(
+                    schemes: sharedSchemes,
+                    targets: pbxProj.nativeTargets
+                )
+            }
         }
 
         // MARK: - XML
@@ -31,7 +44,7 @@ extension XCScheme {
         func xmlElement() -> AEXMLElement {
             let element = AEXMLElement(name: "Root")
             element.addChild(userState.xmlElement())
-            element.addChild(autocreation.xmlElement())
+            element.addChild(autocreateState.xmlElement())
             return element
         }
 
@@ -43,7 +56,7 @@ extension XCScheme {
 
         public static func ==(lhs: Management, rhs: Management) -> Bool {
             return lhs.userState == rhs.userState &&
-                lhs.autocreation == rhs.autocreation
+                lhs.autocreateState == rhs.autocreateState
         }
     }
 }

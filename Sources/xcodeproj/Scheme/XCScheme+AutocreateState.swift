@@ -3,7 +3,7 @@ import Foundation
 import PathKit
 
 extension XCScheme {
-    public final class BuildableAutocreation: Equatable {
+    public final class AutocreateState: Equatable {
         // MARK: - Attributes
 
         public let blueprintIdentifier: String?
@@ -43,7 +43,7 @@ extension XCScheme {
 
         // MARK: - Equatable
 
-        public static func ==(lhs: BuildableAutocreation, rhs: BuildableAutocreation) -> Bool {
+        public static func ==(lhs: AutocreateState, rhs: AutocreateState) -> Bool {
             return lhs.shouldSuppress == rhs.shouldSuppress
         }
     }

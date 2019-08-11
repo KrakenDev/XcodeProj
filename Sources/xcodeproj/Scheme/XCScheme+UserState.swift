@@ -16,7 +16,7 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme]) {
+        public init(schemes: [XCScheme], targets: [PBXNativeTarget]) {
             elements = schemes.map { scheme in
                 var key = "\(scheme.name)"
                 key += ".\(scheme.isa.lowercased())"

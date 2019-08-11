@@ -39,7 +39,6 @@ public final class XCUserData: Equatable {
     ///
     /// - Parameter path: the .xcodeproj path
     public init(path: Path) throws {
-        let pbxProj = try PBXProj.from(path: path)
         let dataPath = path + XCUserData.dataPath
         let schemesPath = path + XCUserData.schemesPath
         let debuggerPath = path + XCUserData.debuggerPath
@@ -48,7 +47,7 @@ public final class XCUserData: Equatable {
         try? schemesPath.mkpath()
         try? debuggerPath.mkpath()
 
-        schemes = try schemesPath.glob("*.xcscheme").compactMap(XCScheme.init)
+        schemes = XCUserData.schemes(from: schemesPath)
         schemeManagement = try? XCScheme.Management(path: schemesPath)
         breakpoints = try? XCBreakpointList(path: path + XCUserData.breakpointsPath)
         workspaceSettings = try? WorkspaceSettings.at(

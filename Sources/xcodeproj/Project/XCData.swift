@@ -20,6 +20,8 @@ public protocol XCData: class, Equatable {
 
     func writeSchemes(path: Path, override: Bool) throws
     func writeBreakPoints(path: Path, override: Bool) throws
+
+    static func schemes(from path: Path) throws -> [XCScheme]
 }
 
 public extension XCData {
@@ -88,5 +90,9 @@ public extension XCData {
         }
         try debugPath.mkpath()
         try breakpoints?.write(path: path + breakpointsPath, override: override)
+    }
+
+    static func schemes(from path: Path) throws -> [XCScheme] {
+        return try (path + schemesPath).glob("*.xcscheme").compactMap(XCScheme.init)
     }
 }
