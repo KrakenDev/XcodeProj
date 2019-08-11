@@ -62,14 +62,14 @@ public extension XCData {
     ///   If true will remove all existing schemes before writing.
     ///   If false will throw error if scheme already exists at the given path.
     func writeSchemes(path: Path, override: Bool = true) throws {
-        if override, schemesPath.exists {
-            try schemesPath.delete()
+        let path = path + schemesPath
+        if override, path.exists {
+            try path.delete()
         }
-        try schemesPath.mkpath()
+        try path.mkpath()
         for scheme in schemes {
             try scheme.write(
-                path: path + schemesPath + scheme.name +
-                    "." + scheme.isa.lowercased(),
+                path: path + scheme.pathName,
                 override: override
             )
         }

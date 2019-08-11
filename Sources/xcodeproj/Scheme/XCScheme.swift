@@ -39,6 +39,10 @@ public final class XCScheme: Writable, Equatable {
     public var isShared: Bool
     public var orderHint: Int
 
+    public var pathName: Path {
+        return Path(name + ".\(isa.lowercased())")
+    }
+
     // MARK: - Init
 
     public init(path: Path) throws {
