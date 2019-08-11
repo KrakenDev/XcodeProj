@@ -33,7 +33,11 @@ public final class XCScheme: Writable, Equatable {
     public var lastUpgradeVersion: String?
     public var version: String?
     public var wasCreatedForAppExtension: Bool?
+    public var shouldAutocreate: Bool?
+
     public var name: String
+    public var isShared: Bool
+    public var orderHint: Int
 
     // MARK: - Init
 
@@ -41,7 +45,11 @@ public final class XCScheme: Writable, Equatable {
         if !path.exists {
             throw XCSchemeError.notFound(path: path)
         }
+
         name = path.lastComponentWithoutExtension
+        isShared = true
+        orderHint = 0
+
         let document = try AEXMLDocument(xml: try path.read())
         let scheme = document["Scheme"]
         lastUpgradeVersion = scheme.attributes["LastUpgradeVersion"]
@@ -59,6 +67,8 @@ public final class XCScheme: Writable, Equatable {
     }
 
     public init(name: String,
+                isShared: Bool = true,
+                orderHint: Int = 0,
                 lastUpgradeVersion: String?,
                 version: String?,
                 buildAction: BuildAction? = nil,
@@ -67,8 +77,12 @@ public final class XCScheme: Writable, Equatable {
                 profileAction: ProfileAction? = nil,
                 analyzeAction: AnalyzeAction? = nil,
                 archiveAction: ArchiveAction? = nil,
-                wasCreatedForAppExtension: Bool? = nil) {
+                wasCreatedForAppExtension: Bool? = nil,
+                shouldAutocreate: Bool? = nil) {
         self.name = name
+        self.isShared = isShared
+        self.orderHint = orderHint
+        
         self.lastUpgradeVersion = lastUpgradeVersion
         self.version = version
         self.buildAction = buildAction
@@ -78,6 +92,7 @@ public final class XCScheme: Writable, Equatable {
         self.analyzeAction = analyzeAction
         self.archiveAction = archiveAction
         self.wasCreatedForAppExtension = wasCreatedForAppExtension
+        self.shouldAutocreate = shouldAutocreate
     }
 
     // MARK: - Writable
@@ -127,6 +142,8 @@ public final class XCScheme: Writable, Equatable {
             lhs.lastUpgradeVersion == rhs.lastUpgradeVersion &&
             lhs.version == rhs.version &&
             lhs.name == rhs.name &&
-            lhs.wasCreatedForAppExtension == rhs.wasCreatedForAppExtension
+            lhs.wasCreatedForAppExtension == rhs.wasCreatedForAppExtension &&
+            lhs.isShared == rhs.isShared &&
+            lhs.orderHint == rhs.orderHint
     }
 }

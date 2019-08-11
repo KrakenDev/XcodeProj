@@ -74,8 +74,7 @@ public class PBXObject: Hashable, Decodable, Equatable, AutoEquatable {
     /// - Throws: an error if this method is accessed before the object has been added to a project.
     func objects() throws -> PBXObjects {
         guard let objects = self.reference.objects else {
-            let objectType = String(describing: type(of: self))
-            throw PBXObjectError.orphaned(type: objectType, reference: reference.value)
+            throw PBXObjectError.orphaned(type: isa, reference: reference.value)
         }
         return objects
     }

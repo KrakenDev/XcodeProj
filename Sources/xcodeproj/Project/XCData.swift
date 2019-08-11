@@ -8,31 +8,51 @@
 import Foundation
 import PathKit
 
-public protocol XCData: class {
-    var dataPath: Path { get }
-    var schemesPath: Path { get }
-    var debuggerPath: Path { get }
-    var breakpointsPath: Path { get }
+public protocol XCData: class, Equatable {
+    static var dataPath: Path { get }
+    static var schemesPath: Path { get }
+    static var debuggerPath: Path { get }
+    static var breakpointsPath: Path { get }
+    static var workspaceSettingsPath: Path { get }
 
-    var breakpoints: XCBreakpointList? { get }
     var schemes: [XCScheme] { get set }
+    var breakpoints: XCBreakpointList? { get }
 
     func writeSchemes(path: Path, override: Bool) throws
     func writeBreakPoints(path: Path, override: Bool) throws
 }
 
 public extension XCData {
-    var dataPath: Path {
-        return Path(String(describing: Self.self).lowercased())
+    static var dataPath: Path {
+        return Path(isa.lowercased())
     }
-    var schemesPath: Path {
+    static var schemesPath: Path {
         return dataPath + "xcschemes"
     }
-    var debuggerPath: Path {
+    static var debuggerPath: Path {
         return dataPath + "xcdebugger"
     }
-    var breakpointsPath: Path {
+    static var breakpointsPath: Path {
         return debuggerPath + "Breakpoints_v2.xcbkptlist"
+    }
+    static var workspaceSettingsPath: Path {
+        return dataPath + "WorkspaceSettings.xcsettings"
+    }
+
+    var dataPath: Path {
+        return type(of: self).dataPath
+    }
+    var schemesPath: Path {
+        return type(of: self).schemesPath
+    }
+    var debuggerPath: Path {
+        return type(of: self).debuggerPath
+    }
+    var breakpointsPath: Path {
+        return type(of: self).breakpointsPath
+    }
+    var workspaceSettingsPath: Path {
+        return type(of: self).workspaceSettingsPath
     }
 
     /// Writes all project schemes to the given path.
@@ -48,8 +68,8 @@ public extension XCData {
         try schemesPath.mkpath()
         for scheme in schemes {
             try scheme.write(
-                path: path + schemesPath + scheme.name + "." +
-                    String(describing: XCScheme.self).lowercased(),
+                path: path + schemesPath + scheme.name +
+                    "." + scheme.isa.lowercased(),
                 override: override
             )
         }

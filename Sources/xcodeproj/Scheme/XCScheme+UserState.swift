@@ -4,22 +4,34 @@ import PathKit
 
 extension XCScheme {
     public final class UserState: Equatable {
+        public struct Element: Equatable {
+            public var key: String
+            public var isShared: Bool
+            public var orderHint: Int
+        }
+
         // MARK: - Attributes
 
-        public var isShared: Bool
-        public var orderHint: Int
+        public let elements: [Element]
 
         // MARK: - Init
 
-        public init(isShared: Bool = true,
-                    orderHint: Int = 0) {
-            self.isShared = isShared
-            self.orderHint = orderHint
+        public init(schemes: [XCScheme]) {
+            elements = schemes.map { scheme in
+                var key = "\(scheme.name)"
+                key += ".\(scheme.isa.lowercased())"
+                key += scheme.isShared ? "_^#shared#^_" : ""
+
+                return Element(
+                    key: key,
+                    isShared: scheme.isShared,
+                    orderHint: scheme.orderHint
+                )
+            }
         }
 
         init(element: AEXMLElement) throws {
-            isShared = element.attributes["useCustomWorkingDirectory"] == "YES"
-            orderHint = element.attributes["buildConfiguration"] as? Int ?? 0
+            elements = []
         }
 
         // MARK: - XML
@@ -30,7 +42,7 @@ extension XCScheme {
                 value: nil,
                 attributes: [
 //                    "Generate.xcscheme_^#shared#^_" : [
-                        "orderHint" : String(orderHint)
+                        "orderHint" : ""
 //                    ]
                 ])
             let actions = element.addChild(name: "PreActions")
@@ -44,8 +56,7 @@ extension XCScheme {
         // MARK: - Equatable
 
         public static func ==(lhs: UserState, rhs: UserState) -> Bool {
-            return lhs.isShared == rhs.isShared &&
-                lhs.orderHint == rhs.orderHint
+            return lhs.elements == rhs.elements
         }
     }
 }

@@ -6,16 +6,20 @@ extension XCScheme {
     public final class BuildableAutocreation: Equatable {
         // MARK: - Attributes
 
+        public let blueprintIdentifier: String?
         public var shouldSuppress: Bool
 
         // MARK: - Init
 
-        public init(shouldSuppress: Bool = false) {
-            self.shouldSuppress = shouldSuppress
+        public init(schemes: [XCScheme]) {
+            blueprintIdentifier = schemes.first!.launchAction?.runnable?
+                .buildableReference.blueprintIdentifier
+            shouldSuppress = (schemes.first!.shouldAutocreate ?? true) == false
         }
 
         init(element: AEXMLElement) throws {
-            shouldSuppress = element.attributes["SuppressBuildableAutocreation"].map { $0 == "YES" } ?? false
+            blueprintIdentifier = element.name
+            shouldSuppress = element.children.first?.bool ?? false
         }
 
         // MARK: - XML

@@ -285,7 +285,7 @@ extension ReferenceGenerator {
             if let context = object.context {
                 identifiers.append(context)
             }
-            let typeName = String(describing: type(of: object))
+            let typeName = object.isa
 
             // Get acronym to be used as prefix for the reference.
             // PBXFileReference is turned to FR.

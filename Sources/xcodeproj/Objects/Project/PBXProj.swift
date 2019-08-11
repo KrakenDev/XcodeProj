@@ -52,6 +52,26 @@ public final class PBXProj: Decodable {
         }
     }
 
+    public static func from(path: Path) throws -> PBXProj {
+        let pbxprojPaths = path.glob("*.pbxproj")
+        if pbxprojPaths.isEmpty {
+            throw XCodeProjError.pbxprojNotFound(path: path)
+        }
+        let pbxprojPath = pbxprojPaths.first!
+        let (pbxProjData, pbxProjDictionary) = try PBXProj.read(from: pbxprojPath)
+        let context = ProjectDecodingContext(
+            pbxProjValueReader: { key in
+                pbxProjDictionary[key]
+            }
+        )
+
+        let plistDecoder = XcodeprojPropertyListDecoder(context: context)
+        let pbxProj = try plistDecoder.decode(PBXProj.self, from: pbxProjData)
+        try pbxProj.updateProjectName(path: pbxprojPaths.first!)
+
+        return pbxProj
+    }
+
     // MARK: - Decodable
 
     fileprivate enum CodingKeys: String, CodingKey {
@@ -220,6 +240,21 @@ extension PBXProj: Equatable {
             lhs.objectVersion == rhs.objectVersion &&
             equalClasses &&
             lhs.objects == rhs.objects
+    }
+}
+
+extension PBXProj {
+    private static func read(from path: Path) throws -> (Data, [String: Any]) {
+        let plistXML = try Data(contentsOf: path.url)
+        var propertyListFormat = PropertyListSerialization.PropertyListFormat.xml
+        let serialized = try PropertyListSerialization.propertyList(
+            from: plistXML,
+            options: .mutableContainersAndLeaves,
+            format: &propertyListFormat
+        )
+        // swiftlint:disable:next force_cast
+        let pbxProjDictionary = serialized as! [String: Any]
+        return (plistXML, pbxProjDictionary)
     }
 }
 

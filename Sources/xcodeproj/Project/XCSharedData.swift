@@ -31,21 +31,20 @@ public final class XCSharedData: Equatable, XCData {
 
     /// Initializes the XCSharedData reading the content from the disk.
     ///
-    /// - Parameter path: path where the .xcshareddata is.
+    /// - Parameter path: path where the .xcodeproj is.
     public init(path: Path) throws {
-        if !path.exists {
-            throw XCSharedDataError.notFound(path: path)
-        }
-        schemes = path.glob("xcschemes/*.xcscheme")
-            .compactMap { try? XCScheme(path: $0) }
-        breakpoints = try? XCBreakpointList(path: path + "xcdebugger/Breakpoints_v2.xcbkptlist")
+        let dataPath = path + XCSharedData.dataPath
+        let schemesPath = path + XCSharedData.schemesPath
 
-        let workspaceSettingsPath = path + "WorkspaceSettings.xcsettings"
-        if workspaceSettingsPath.exists {
-            workspaceSettings = try WorkspaceSettings.at(path: workspaceSettingsPath)
-        } else {
-            workspaceSettings = nil
+        if !dataPath.exists {
+            throw XCSharedDataError.notFound(path: dataPath)
         }
+
+        schemes = try schemesPath.glob("*.xcscheme").compactMap(XCScheme.init)
+        breakpoints = try? XCBreakpointList(path: path + XCSharedData.breakpointsPath)
+        workspaceSettings = try? WorkspaceSettings.at(
+            path: path + XCSharedData.workspaceSettingsPath
+        )
     }
 
     // MARK: - Equatable

@@ -26,32 +26,14 @@ public final class XcodeProj: Equatable {
         var userData: XCUserData?
 
         if !path.exists { throw XCodeProjError.notFound(path: path) }
-        let pbxprojPaths = path.glob("*.pbxproj")
-        if pbxprojPaths.isEmpty {
-            throw XCodeProjError.pbxprojNotFound(path: path)
-        }
-        let pbxprojPath = pbxprojPaths.first!
-        let (pbxProjData, pbxProjDictionary) = try XcodeProj.readPBXProj(path: pbxprojPath)
-        let context = ProjectDecodingContext(
-            pbxProjValueReader: { key in
-                pbxProjDictionary[key]
-            }
-        )
+        pbxproj = try PBXProj.from(path: path)
 
-        let plistDecoder = XcodeprojPropertyListDecoder(context: context)
-        pbxproj = try plistDecoder.decode(PBXProj.self, from: pbxProjData)
-        try pbxproj.updateProjectName(path: pbxprojPaths.first!)
         let xcworkspacePaths = path.glob("*.xcworkspace")
-        if xcworkspacePaths.isEmpty {
-            workspace = XCWorkspace()
-        } else {
-            workspace = try XCWorkspace(path: xcworkspacePaths.first!)
-        }
-        let sharedDataPath = path + "xcshareddata"
-        sharedData = try? XCSharedData(path: sharedDataPath)
+        workspace = xcworkspacePaths.isEmpty ? XCWorkspace() :
+            try XCWorkspace(path: xcworkspacePaths.first!)
 
-        let userDataPath = path + "xcuserdata"
-        userData = try? XCUserData(path: userDataPath)
+        sharedData = try? XCSharedData(path: path)
+        userData = try? XCUserData(path: path)
 
         self.pbxproj = pbxproj
         self.workspace = workspace
@@ -84,21 +66,6 @@ public final class XcodeProj: Equatable {
             lhs.pbxproj == rhs.pbxproj &&
             lhs.sharedData == rhs.sharedData &&
             lhs.userData == rhs.userData
-    }
-
-    // MARK: - Private
-
-    private static func readPBXProj(path: Path) throws -> (Data, [String: Any]) {
-        let plistXML = try Data(contentsOf: path.url)
-        var propertyListFormat = PropertyListSerialization.PropertyListFormat.xml
-        let serialized = try PropertyListSerialization.propertyList(
-            from: plistXML,
-            options: .mutableContainersAndLeaves,
-            format: &propertyListFormat
-        )
-        // swiftlint:disable:next force_cast
-        let pbxProjDictionary = serialized as! [String: Any]
-        return (plistXML, pbxProjDictionary)
     }
 }
 

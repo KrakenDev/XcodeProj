@@ -93,7 +93,7 @@ public final class PBXLegacyTarget: PBXTarget {
                     PlistValue.string(CommentedString(buildWorkingDirectory))
             }
         default:
-            throw XcodeprojWritingError.invalidType(class: String(describing: type(of: self)), expected: "Dictionary")
+            throw XcodeprojWritingError.invalidType(class: isa, expected: "Dictionary")
         }
         return (key: key, value: .dictionary(dict))
     }
