@@ -69,10 +69,10 @@ struct Plist: Codable {
         return CodingKeys.string.stringValue
     }
     static var `true`: String {
-        return CodingKeys.true.stringValue + "/"
+        return CodingKeys.true.stringValue
     }
     static var `false`: String {
-        return CodingKeys.false.stringValue + "/"
+        return CodingKeys.false.stringValue
     }
 }
 
