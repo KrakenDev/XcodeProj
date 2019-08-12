@@ -22,10 +22,10 @@ extension XCScheme {
                 xml: try Management.plistPath(from: path).read()) else {
                     let basePath = Path(path.string.replacingOccurrences(
                         of: XCUserData.schemesPath.string, with: ""))
-                    let sharedData = try XCSharedData(path: basePath)
+                    let sharedData = try? XCSharedData(path: basePath)
 
-                    let userSchemes = try XCUserData.schemes(from: path)
-                    let sharedSchemes = sharedData.schemes
+                    let userSchemes = (try? XCUserData.schemes(from: path)) ?? []
+                    let sharedSchemes = sharedData?.schemes ?? []
                     userSchemes.forEach { $0.isShown = false }
                     sharedSchemes.forEach { $0.isShared = true }
 

@@ -39,7 +39,7 @@ extension XCScheme {
                 let app = PBXProductType.application.fileExtension
                 let framework = PBXProductType.framework.fileExtension
 
-                let orderHint =
+                scheme.orderHint =
                     (name == app) ? 1 :
                     (name == nil) ? 2 :
                     (name == framework) ? 3 : 4
@@ -48,7 +48,7 @@ extension XCScheme {
                     key: key,
                     isShown: scheme.isShown,
                     isShared: scheme.isShared,
-                    orderHint: orderHint
+                    orderHint: scheme.orderHint
                 )
             }.sorted { $0.key < $1.key }
         }
