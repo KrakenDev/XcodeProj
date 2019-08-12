@@ -7,13 +7,13 @@ extension XCScheme {
         // MARK: - Attributes
 
         public var userState: SchemeUserState
-        public var autocreateState: AutocreateState
+        public var suppressBuildableAutocreation: SuppressBuildableAutocreation
 
         // MARK: - Init
 
         public init(schemes: [XCScheme], targets: [PBXNativeTarget] = []) {
             self.userState = SchemeUserState(schemes: schemes, targets: targets)
-            self.autocreateState = AutocreateState(schemes: schemes)
+            self.suppressBuildableAutocreation = SuppressBuildableAutocreation(schemes: schemes)
         }
 
         init(path: Path) throws {
@@ -26,7 +26,7 @@ extension XCScheme {
                 let sharedSchemes = sharedData.schemes
 
                 let pbxProj = try PBXProj.from(path: basePath)
-                autocreateState = AutocreateState(schemes: userSchemes)
+                suppressBuildableAutocreation = SuppressBuildableAutocreation(schemes: userSchemes)
                 userState = SchemeUserState(
                     schemes: userSchemes + sharedSchemes,
                     targets: pbxProj.nativeTargets
@@ -34,31 +34,31 @@ extension XCScheme {
                 return
             }
             userState = try SchemeUserState(element: document[SchemeUserState.isa])
-            autocreateState = try AutocreateState(element: document["SuppressBuildableAutocreation"])
-        }
-
-        // MARK: - XML
-
-        func xmlElement() -> AEXMLElement {
-            let element = AEXMLElement(name: "Root")
-            element.addChild(userState.xmlElement())
-            element.addChild(autocreateState.xmlElement())
-            return element
+            suppressBuildableAutocreation = try SuppressBuildableAutocreation(element: document["SuppressBuildableAutocreation"])
         }
 
         // MARK: - Writable
 
         public func write(path: Path, override: Bool) throws {
-            let writePath = Management.plistPath(from: path)
-            let xmlString = xmlElement().xml
-            try writePath.write(xmlString)
+            let document: AEXMLDocument = .plist
+
+            let elements: AEXMLElement = .dict
+            elements.addChildren(userState.xmlElements())
+            elements.addChildren(
+                suppressBuildableAutocreation.xmlElements()
+            )
+
+            document.root.addChild(elements)
+
+            let plist = document.xmlPlist
+            try Management.plistPath(from: path).write(plist)
         }
 
         // MARK: - Equatable
 
         public static func ==(lhs: Management, rhs: Management) -> Bool {
             return lhs.userState == rhs.userState &&
-                lhs.autocreateState == rhs.autocreateState
+                lhs.suppressBuildableAutocreation == rhs.suppressBuildableAutocreation
         }
     }
 }
@@ -67,6 +67,7 @@ extension XCScheme.Management {
     private static func plistPath(from path: Path) -> Path {
         let managementName = XCScheme.Management.isa.lowercased()
         let xcschemeName = XCScheme.isa.lowercased()
-        return path + "\(xcschemeName + managementName).plist"
+        return path + XCUserData.schemesPath
+            + Path("\(xcschemeName + managementName).plist")
     }
 }

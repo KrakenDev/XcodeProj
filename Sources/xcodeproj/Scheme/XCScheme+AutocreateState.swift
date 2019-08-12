@@ -3,19 +3,16 @@ import Foundation
 import PathKit
 
 extension XCScheme {
-    public final class AutocreateState: Writable, Equatable {
+    public final class SuppressBuildableAutocreation: Equatable {
         public struct Element: Equatable, Codable {
             public let blueprintIdentifier: String
             public var primary: Bool
 
             func xmlElement() -> AEXMLElement {
-                return AEXMLElement(
-                    name: blueprintIdentifier,
-                    attributes: [
-                        CodingKeys.primary.stringValue :
-                            primary ? "YES" : "NO"
-                    ]
-                )
+                let element: AEXMLElement = .dict
+                element.addChild(.key(with: CodingKeys.primary.stringValue))
+                element.addChild(primary ? .true : .false)
+                return element
             }
         }
 
@@ -40,22 +37,19 @@ extension XCScheme {
 
         // MARK: - XML
 
-        func xmlElement() -> AEXMLElement {
-            let elementXML = AEXMLElement(name: "SuppressBuildableAutocreation")
+        func xmlElements() -> [AEXMLElement] {
+            let elementXML: AEXMLElement = .dict
+
             for element in elements {
+                elementXML.addChild(.key(with: element.blueprintIdentifier))
                 elementXML.addChild(element.xmlElement())
             }
-            return elementXML
-        }
-
-        // MARK: - Writable
-
-        public func write(path: Path, override: Bool) throws {
+            return [.key(with: SuppressBuildableAutocreation.isa), elementXML]
         }
 
         // MARK: - Equatable
 
-        public static func ==(lhs: AutocreateState, rhs: AutocreateState) -> Bool {
+        public static func ==(lhs: SuppressBuildableAutocreation, rhs: SuppressBuildableAutocreation) -> Bool {
             return lhs.elements == rhs.elements
         }
     }

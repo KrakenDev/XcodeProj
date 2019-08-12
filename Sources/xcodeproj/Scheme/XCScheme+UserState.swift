@@ -10,9 +10,10 @@ extension XCScheme {
             public var orderHint: Int
 
             func xmlElement() -> AEXMLElement {
-                return AEXMLElement(name: key, attributes: [
-                    CodingKeys.orderHint.stringValue : String(orderHint)
-                ])
+                let element: AEXMLElement = .dict
+                element.addChild(.key(with: CodingKeys.orderHint.stringValue))
+                element.addChild(.integer(with: orderHint))
+                return element
             }
         }
 
@@ -57,12 +58,14 @@ extension XCScheme {
 
         // MARK: - XML
 
-        func xmlElement() -> AEXMLElement {
-            let xml = AEXMLElement(name: SchemeUserState.isa)
+        func xmlElements() -> [AEXMLElement] {
+            let elementXML: AEXMLElement = .dict
+
             for element in elements {
-                xml.addChild(element.xmlElement())
+                elementXML.addChild(.key(with: element.key))
+                elementXML.addChild(element.xmlElement())
             }
-            return xml
+            return [.key(with: SchemeUserState.isa), elementXML]
         }
 
         // MARK: - Equatable
