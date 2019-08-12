@@ -39,16 +39,16 @@ extension XCScheme {
                     isShared: scheme.isShared,
                     orderHint: scheme.orderHint
                 )
-            } + targets.map { target in
+            } + targets.compactMap { target in
                 var key = "\(target.name)"
                 key += ".\(XCScheme.isa.lowercased())"
                 orderHint += 1
 
-                return Element(
+                return schemes.map({$0.name}).contains(target.name) ? Element(
                     key: key,
-                    isShared: false,
+                    isShared: true,
                     orderHint: orderHint
-                )
+                ) : nil
             }
         }
 

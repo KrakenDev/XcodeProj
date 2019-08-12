@@ -28,11 +28,19 @@ extension XCScheme {
                 let sharedSchemes = sharedData.schemes
                 sharedSchemes.forEach { $0.isShared = true }
 
+                let separator = "::"
                 let pbxProj = try PBXProj.from(path: basePath)
                 let dependencies = pbxProj.targetDependencies
+                let natives: [String] = pbxProj.nativeTargets.map { buildFile in
+                    return buildFile.name
+                }
+                let depends: [String] = pbxProj.targetDependencies.map { dependency in
+                    let targetName = dependency.targetReference?.value
+                        .components(separatedBy: separator).last ?? separator
+                    return targetName
+                }
                 let sharedNames = sharedSchemes.map { $0.name }
 
-                let separator = "::"
                 let userTargets = dependencies.compactMap { dependency in
                     return dependency.target
                 } + pbxProj.nativeTargets.filter { target in

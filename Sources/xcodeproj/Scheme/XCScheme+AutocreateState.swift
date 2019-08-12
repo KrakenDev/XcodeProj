@@ -23,7 +23,7 @@ extension XCScheme {
         // MARK: - Init
 
         public init(targetNames: [String]) {
-            elements = targetNames.map(Element.init)
+            elements = targetNames.sorted(by: <).map(Element.init)
         }
 
         init(element: AEXMLElement) throws {
