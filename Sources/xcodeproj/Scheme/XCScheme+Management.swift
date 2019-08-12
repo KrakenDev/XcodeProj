@@ -29,9 +29,10 @@ extension XCScheme {
                 userSchemes.forEach { $0.isShared = false }
                 sharedSchemes.forEach { $0.isShared = true }
 
-                let pbxProj = try PBXProj.from(path: basePath)
+                let pbx = try PBXProj.from(path: basePath)
+                let allTargets = pbx.nativeTargets + pbx.aggregateTargets
                 let sharedNames = sharedSchemes.map { $0.name }
-                let schemeNames = pbxProj.nativeTargets.map { target in
+                let schemeNames = allTargets.map { target in
                     return target.reference.value
                 }
 
