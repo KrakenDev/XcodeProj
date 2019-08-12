@@ -23,26 +23,20 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme]) {
-            elements = schemes.map { scheme in
-                var key = "\(scheme.name)"
-                key += ".\(scheme.isa.lowercased())"
-                key += scheme.isShared ? "_^#shared#^_" : ""
+        public init(targets: [PBXTarget]) {
+            elements = targets.map { target in
+                var key = "\(target.name)"
+                key += ".\(XCScheme.isa.lowercased())_^#shared#^_"
 
-                let name = scheme.buildAction?.buildActionEntries.first { entry in
-                    return entry.buildableReference.blueprintName == scheme.name
-                }?.buildableReference.buildableName ?? ""
-
-                let app = PBXProductType.application.fileExtension ?? ""
-                let framework = PBXProductType.framework.fileExtension ?? ""
-                let orderHint = name.contains(app) ? 1 :
-                    name.contains(framework) ? 3 : 2
+                let type = target.productType
+                let orderHint = (type == .application) ? 1 :
+                    type == .commandLineTool ? 2 :
+                    type == .framework ? 3 : 4
 
                 return Element(
                     key: key,
-                    isShared: scheme.isShared,
-                    orderHint: scheme.orderHint < 0 ?
-                        orderHint : scheme.orderHint
+                    isShared: true,
+                    orderHint: orderHint
                 )
             }.sorted { $0.key < $1.key }
         }

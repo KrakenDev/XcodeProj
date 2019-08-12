@@ -23,7 +23,6 @@ public final class XcodeProj: Equatable {
         var pbxproj: PBXProj!
         var workspace: XCWorkspace!
         var sharedData: XCSharedData?
-        var userData: XCUserData?
 
         if !path.exists { throw XCodeProjError.notFound(path: path) }
         pbxproj = try PBXProj.from(path: path)
@@ -33,12 +32,10 @@ public final class XcodeProj: Equatable {
             try XCWorkspace(path: xcworkspacePaths.first!)
 
         sharedData = try? XCSharedData(path: path)
-        userData = try? XCUserData(path: path)
 
         self.pbxproj = pbxproj
         self.workspace = workspace
         self.sharedData = sharedData
-        self.userData = userData
     }
 
     public convenience init(pathString: String) throws {
@@ -92,6 +89,8 @@ extension XcodeProj: Writable {
         try writeWorkspace(path: path, override: override)
         try writePBXProj(path: path, override: override, outputSettings: outputSettings)
         try sharedData?.write(to: path, override: override)
+
+        userData = try? XCUserData(path: path)
         try userData?.write(to: path, override: override)
     }
 

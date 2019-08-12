@@ -12,7 +12,8 @@ extension XCScheme {
         // MARK: - Init
 
         public init(schemes: [XCScheme], targets: [PBXTarget] = []) {
-            self.userState = SchemeUserState(schemes: schemes)
+            self.userState = SchemeUserState(targets: Management
+                .targets(targets, matching: schemes))
             self.suppressBuildableAutocreation = .init(
                 targetNames: targets.map { $0.name })
         }
@@ -24,9 +25,7 @@ extension XCScheme {
                     of: XCUserData.schemesPath.string, with: ""))
                 let sharedData = try XCSharedData(path: basePath)
 
-                let userSchemes = try XCUserData.schemes(from: path)
                 let sharedSchemes = sharedData.schemes
-                userSchemes.forEach { $0.isShared = false }
                 sharedSchemes.forEach { $0.isShared = true }
 
                 let pbx = try PBXProj.from(path: basePath)
@@ -36,9 +35,8 @@ extension XCScheme {
                     return target.reference.value
                 }
 
-                userState = SchemeUserState(
-                    schemes: sharedSchemes
-                )
+                userState = SchemeUserState(targets: Management
+                    .targets(allTargets, matching: sharedSchemes))
                 suppressBuildableAutocreation = .init(
                     targetNames: schemeNames.filter { name in
                         let targetName = name.components(
@@ -81,6 +79,12 @@ extension XCScheme {
 }
 
 extension XCScheme.Management {
+    private static func targets(_ targets: [PBXTarget], matching schemes: [XCScheme]) -> [PBXTarget] {
+        return targets.filter {
+            let schemeNames = schemes.map { $0.name }
+            return schemeNames.contains($0.name)
+        }
+    }
     private static func plistPath(from path: Path) -> Path {
         let managementName = XCScheme.Management.isa.lowercased()
         let xcschemeName = XCScheme.isa.lowercased()
