@@ -23,7 +23,7 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme], targets: [PBXTarget]) {
+        public init(schemes: [XCScheme]) {
             var orderHint = 0
             elements = schemes.map { scheme in
                 var key = "\(scheme.name)"
@@ -39,17 +39,7 @@ extension XCScheme {
                     isShared: scheme.isShared,
                     orderHint: scheme.orderHint
                 )
-            } + targets.compactMap { target in
-                var key = "\(target.name)"
-                key += ".\(XCScheme.isa.lowercased())"
-                orderHint += 1
-
-                return schemes.map({$0.name}).contains(target.name) ? Element(
-                    key: key,
-                    isShared: true,
-                    orderHint: orderHint
-                ) : nil
-            }
+            }.sorted { $0.key < $1.key }
         }
 
         init(element: AEXMLElement) throws {

@@ -12,7 +12,7 @@ extension XCScheme {
         // MARK: - Init
 
         public init(schemes: [XCScheme], targets: [PBXTarget] = []) {
-            self.userState = SchemeUserState(schemes: schemes, targets: targets)
+            self.userState = SchemeUserState(schemes: schemes)
             self.suppressBuildableAutocreation = .init(
                 targetNames: targets.map { $0.name })
         }
@@ -23,40 +23,23 @@ extension XCScheme {
                 let basePath = Path(path.string.replacingOccurrences(
                     of: XCUserData.schemesPath.string, with: ""))
                 let sharedData = try XCSharedData(path: basePath)
+
                 let userSchemes = try XCUserData.schemes(from: path)
-                userSchemes.forEach { $0.isShared = false }
                 let sharedSchemes = sharedData.schemes
+                userSchemes.forEach { $0.isShared = false }
                 sharedSchemes.forEach { $0.isShared = true }
 
-                let separator = "::"
                 let pbxProj = try PBXProj.from(path: basePath)
-                let dependencies = pbxProj.targetDependencies
-                let natives: [String] = pbxProj.nativeTargets.map { buildFile in
-                    return buildFile.name
-                }
-                let depends: [String] = pbxProj.targetDependencies.map { dependency in
-                    let targetName = dependency.targetReference?.value
-                        .components(separatedBy: separator).last ?? separator
-                    return targetName
-                }
                 let sharedNames = sharedSchemes.map { $0.name }
-
-                let userTargets = dependencies.compactMap { dependency in
-                    return dependency.target
-                } + pbxProj.nativeTargets.filter { target in
-                    return !sharedNames.contains(target.name)
+                let schemeNames = pbxProj.nativeTargets.map { target in
+                    return target.reference.value
                 }
 
                 userState = SchemeUserState(
-                    schemes: userSchemes + sharedSchemes,
-                    targets: userTargets
+                    schemes: userSchemes + sharedSchemes
                 )
                 suppressBuildableAutocreation = .init(
-                    targetNames: dependencies.compactMap { dependency in
-                        let targetName = dependency.targetReference?.value
-                            .components(separatedBy: separator).last ?? separator
-                        return !sharedNames.contains(targetName) ? dependency.targetReference?.value : nil
-                    }
+                    targetNames: schemeNames
                 )
                 return
             }
