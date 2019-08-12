@@ -6,11 +6,14 @@ extension XCScheme {
     public final class SchemeUserState: Equatable {
         public struct Element: Equatable, Codable {
             public var key: String
+            public var isShown: Bool
             public var isShared: Bool
             public var orderHint: Int
 
             func xmlElement() -> AEXMLElement {
                 let element: AEXMLElement = .dict
+                element.addChild(.key(with: CodingKeys.isShown.stringValue))
+                element.addChild(isShown ? .true : .false)
                 element.addChild(.key(with: CodingKeys.orderHint.stringValue))
                 element.addChild(.integer(with: orderHint))
                 return element
@@ -23,19 +26,28 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(targets: [PBXTarget]) {
-            elements = targets.map { target in
-                var key = "\(target.name)"
-                key += ".\(XCScheme.isa.lowercased())_^#shared#^_"
+        public init(schemes: [XCScheme]) {
+            elements = schemes.map { scheme in
+                var key = "\(scheme.name)"
+                key += ".\(scheme.isa.lowercased())"
+                key += scheme.isShared ? "_^#shared#^_" : ""
 
-                let type = target.productType
-                let orderHint = (type == .application) ? 1 :
-                    type == .commandLineTool ? 2 :
-                    type == .framework ? 3 : 4
+                let name = Path(scheme.buildAction?.buildActionEntries.first { entry in
+                    return entry.buildableReference.blueprintName == scheme.name
+                }?.buildableReference.buildableName ?? "").extension
+
+                let app = PBXProductType.application.fileExtension
+                let framework = PBXProductType.framework.fileExtension
+
+                let orderHint =
+                    (name == app) ? 1 :
+                    (name == nil) ? 2 :
+                    (name == framework) ? 3 : 4
 
                 return Element(
                     key: key,
-                    isShared: true,
+                    isShown: scheme.isShown,
+                    isShared: scheme.isShared,
                     orderHint: orderHint
                 )
             }.sorted { $0.key < $1.key }

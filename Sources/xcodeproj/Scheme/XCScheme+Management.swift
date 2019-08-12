@@ -12,8 +12,7 @@ extension XCScheme {
         // MARK: - Init
 
         public init(schemes: [XCScheme], targets: [PBXTarget] = []) {
-            self.userState = SchemeUserState(targets: Management
-                .targets(targets, matching: schemes))
+            self.userState = SchemeUserState(schemes: schemes)
             self.suppressBuildableAutocreation = .init(
                 targetNames: targets.map { $0.name })
         }
@@ -21,30 +20,32 @@ extension XCScheme {
         init(path: Path) throws {
             guard let document = try? AEXMLDocument(
                 xml: try Management.plistPath(from: path).read()) else {
-                let basePath = Path(path.string.replacingOccurrences(
-                    of: XCUserData.schemesPath.string, with: ""))
-                let sharedData = try XCSharedData(path: basePath)
+                    let basePath = Path(path.string.replacingOccurrences(
+                        of: XCUserData.schemesPath.string, with: ""))
+                    let sharedData = try XCSharedData(path: basePath)
 
-                let sharedSchemes = sharedData.schemes
-                sharedSchemes.forEach { $0.isShared = true }
+                    let userSchemes = try XCUserData.schemes(from: path)
+                    let sharedSchemes = sharedData.schemes
+                    userSchemes.forEach { $0.isShown = false }
+                    sharedSchemes.forEach { $0.isShared = true }
 
-                let pbx = try PBXProj.from(path: basePath)
-                let allTargets = pbx.nativeTargets + pbx.aggregateTargets
-                let sharedNames = sharedSchemes.map { $0.name }
-                let schemeNames = allTargets.map { target in
-                    return target.reference.value
-                }
-
-                userState = SchemeUserState(targets: Management
-                    .targets(allTargets, matching: sharedSchemes))
-                suppressBuildableAutocreation = .init(
-                    targetNames: schemeNames.filter { name in
-                        let targetName = name.components(
-                            separatedBy: .punctuationCharacters).last
-                        return !sharedNames.contains(targetName ?? "")
+                    let pbx = try PBXProj.from(path: basePath)
+                    let allTargets = pbx.nativeTargets + pbx.aggregateTargets
+                    let sharedNames = sharedSchemes.map { $0.name }
+                    let schemeNames = allTargets.map { target in
+                        return target.reference.value
                     }
-                )
-                return
+
+                    userState = SchemeUserState(
+                        schemes: userSchemes + sharedSchemes)
+                    suppressBuildableAutocreation = .init(
+                        targetNames: schemeNames.filter { name in
+                            let targetName = name.components(
+                                separatedBy: .punctuationCharacters).last
+                            return !sharedNames.contains(targetName ?? "")
+                        }
+                    )
+                    return
             }
             userState = try SchemeUserState(element: document[SchemeUserState.isa])
             suppressBuildableAutocreation = try SuppressBuildableAutocreation(
@@ -79,12 +80,6 @@ extension XCScheme {
 }
 
 extension XCScheme.Management {
-    private static func targets(_ targets: [PBXTarget], matching schemes: [XCScheme]) -> [PBXTarget] {
-        return targets.filter {
-            let schemeNames = schemes.map { $0.name }
-            return schemeNames.contains($0.name)
-        }
-    }
     private static func plistPath(from path: Path) -> Path {
         let managementName = XCScheme.Management.isa.lowercased()
         let xcschemeName = XCScheme.isa.lowercased()
@@ -92,3 +87,4 @@ extension XCScheme.Management {
             + Path("\(xcschemeName + managementName).plist")
     }
 }
+

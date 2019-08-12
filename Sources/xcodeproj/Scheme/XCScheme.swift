@@ -36,6 +36,7 @@ public final class XCScheme: Writable, Equatable {
     public var shouldAutocreate: Bool?
 
     public var name: String
+    public var isShown: Bool
     public var isShared: Bool
     public var orderHint: Int
 
@@ -51,6 +52,7 @@ public final class XCScheme: Writable, Equatable {
         }
 
         name = path.lastComponentWithoutExtension
+        isShown = true
         isShared = false
         orderHint = -1
 
@@ -71,6 +73,7 @@ public final class XCScheme: Writable, Equatable {
     }
 
     public init(name: String,
+                isShown: Bool = true,
                 isShared: Bool = false,
                 orderHint: Int = 0,
                 lastUpgradeVersion: String?,
@@ -84,6 +87,7 @@ public final class XCScheme: Writable, Equatable {
                 wasCreatedForAppExtension: Bool? = nil,
                 shouldAutocreate: Bool? = nil) {
         self.name = name
+        self.isShown = isShown
         self.isShared = isShared
         self.orderHint = orderHint
         
@@ -147,6 +151,7 @@ public final class XCScheme: Writable, Equatable {
             lhs.version == rhs.version &&
             lhs.name == rhs.name &&
             lhs.wasCreatedForAppExtension == rhs.wasCreatedForAppExtension &&
+            lhs.isShown == rhs.isShown &&
             lhs.isShared == rhs.isShared &&
             lhs.orderHint == rhs.orderHint
     }
