@@ -5,7 +5,7 @@ import PathKit
 extension XCScheme {
     public final class SuppressBuildableAutocreation: Equatable {
         public struct Element: Equatable, Codable {
-            public let blueprintIdentifier: String
+            public let key: String
             public let primary: Bool = true
 
             func xmlElement() -> AEXMLElement {
@@ -36,7 +36,7 @@ extension XCScheme {
             let elementXML: AEXMLElement = .dict
 
             for element in elements {
-                elementXML.addChild(.key(with: element.blueprintIdentifier))
+                elementXML.addChild(.key(with: element.key))
                 elementXML.addChild(element.xmlElement())
             }
             return [.key(with: SuppressBuildableAutocreation.isa), elementXML]
