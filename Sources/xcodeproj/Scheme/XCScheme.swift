@@ -51,7 +51,7 @@ public final class XCScheme: Writable, Equatable {
         }
 
         name = path.lastComponentWithoutExtension
-        isShared = true
+        isShared = false
         orderHint = -1
 
         let document = try AEXMLDocument(xml: try path.read())
@@ -71,7 +71,7 @@ public final class XCScheme: Writable, Equatable {
     }
 
     public init(name: String,
-                isShared: Bool = true,
+                isShared: Bool = false,
                 orderHint: Int = 0,
                 lastUpgradeVersion: String?,
                 version: String?,

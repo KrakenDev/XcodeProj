@@ -23,12 +23,19 @@ extension XCScheme {
                     of: XCUserData.schemesPath.string, with: ""))
                 let sharedData = try XCSharedData(path: basePath)
                 let userSchemes = try XCUserData.schemes(from: path)
+                userSchemes.forEach { $0.isShared = false }
                 let sharedSchemes = sharedData.schemes
+                sharedSchemes.forEach { $0.isShared = true }
 
                 let pbxProj = try PBXProj.from(path: basePath)
-                suppressBuildableAutocreation = SuppressBuildableAutocreation(schemes: userSchemes)
+                let userTargets = pbxProj.nativeTargets
+
                 userState = SchemeUserState(
                     schemes: userSchemes + sharedSchemes,
+                    targets: pbxProj.nativeTargets
+                )
+                suppressBuildableAutocreation = SuppressBuildableAutocreation(
+                    schemes: userSchemes,
                     targets: pbxProj.nativeTargets
                 )
                 return

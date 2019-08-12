@@ -22,7 +22,7 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme]) {
+        public init(schemes: [XCScheme], targets: [PBXNativeTarget]) {
             elements = schemes.map { scheme in
                 return .init(
                     blueprintIdentifier: scheme.name,
