@@ -13,7 +13,7 @@ extension XCScheme {
 
         public init(schemes: [XCScheme], targets: [PBXNativeTarget] = []) {
             self.userState = SchemeUserState(schemes: schemes, targets: targets)
-            self.suppressBuildableAutocreation = SuppressBuildableAutocreation(schemes: schemes)
+            self.suppressBuildableAutocreation = SuppressBuildableAutocreation(schemes: schemes, targets: targets)
         }
 
         init(path: Path) throws {
