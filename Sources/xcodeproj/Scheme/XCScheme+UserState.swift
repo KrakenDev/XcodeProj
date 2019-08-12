@@ -24,20 +24,25 @@ extension XCScheme {
         // MARK: - Init
 
         public init(schemes: [XCScheme]) {
-            var orderHint = 0
             elements = schemes.map { scheme in
                 var key = "\(scheme.name)"
                 key += ".\(scheme.isa.lowercased())"
                 key += scheme.isShared ? "_^#shared#^_" : ""
 
-                orderHint += 1
-                scheme.orderHint = scheme.orderHint < 0 ?
-                    orderHint : scheme.orderHint
+                let name = scheme.buildAction?.buildActionEntries.first { entry in
+                    return entry.buildableReference.blueprintName == scheme.name
+                }?.buildableReference.buildableName ?? ""
+
+                let app = PBXProductType.application.fileExtension ?? ""
+                let framework = PBXProductType.framework.fileExtension ?? ""
+                let orderHint = name.contains(app) ? 1 :
+                    name.contains(framework) ? 3 : 2
 
                 return Element(
                     key: key,
                     isShared: scheme.isShared,
-                    orderHint: scheme.orderHint
+                    orderHint: scheme.orderHint < 0 ?
+                        orderHint : scheme.orderHint
                 )
             }.sorted { $0.key < $1.key }
         }
