@@ -40,7 +40,7 @@ public final class XCSharedData: Equatable, XCData {
             throw XCSharedDataError.notFound(path: dataPath)
         }
 
-        schemes = XCSharedData.schemes(from: schemesPath)
+        schemes = try XCSharedData.schemes(from: schemesPath)
         breakpoints = try? XCBreakpointList(path: path + XCSharedData.breakpointsPath)
         workspaceSettings = try? WorkspaceSettings.at(
             path: path + XCSharedData.workspaceSettingsPath

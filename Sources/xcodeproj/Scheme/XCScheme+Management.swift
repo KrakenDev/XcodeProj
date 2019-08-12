@@ -6,37 +6,35 @@ extension XCScheme {
     public final class Management: Writable, Equatable {
         // MARK: - Attributes
 
-        public var userState: UserState
+        public var userState: SchemeUserState
         public var autocreateState: AutocreateState
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme]) {
-            self.userState = UserState(schemes: schemes)
+        public init(schemes: [XCScheme], targets: [PBXNativeTarget] = []) {
+            self.userState = SchemeUserState(schemes: schemes, targets: targets)
             self.autocreateState = AutocreateState(schemes: schemes)
         }
 
         init(path: Path) throws {
-            let xcschemeName = XCScheme.isa.lowercased()
-            let managementName = Management.isa.lowercased()
-            let plistPath = path + "\(xcschemeName + managementName).plist"
-            if let document = try? AEXMLDocument(xml: try plistPath.read()) {
-                userState = try UserState(element: document["SchemeUserState"])
-                autocreateState = try AutocreateState(element: document["SuppressBuildableAutocreation"])
-            } else {
+            guard let document = try? AEXMLDocument(
+                xml: try Management.plistPath(from: path).read()) else {
                 let basePath = Path(path.string.replacingOccurrences(
                     of: XCUserData.schemesPath.string, with: ""))
                 let sharedData = try XCSharedData(path: basePath)
-                let userSchemes = XCUserData.schemes(from: path)
+                let userSchemes = try XCUserData.schemes(from: path)
                 let sharedSchemes = sharedData.schemes
 
                 let pbxProj = try PBXProj.from(path: basePath)
                 autocreateState = AutocreateState(schemes: userSchemes)
-                userState = UserState(
-                    schemes: sharedSchemes,
+                userState = SchemeUserState(
+                    schemes: userSchemes + sharedSchemes,
                     targets: pbxProj.nativeTargets
                 )
+                return
             }
+            userState = try SchemeUserState(element: document[SchemeUserState.isa])
+            autocreateState = try AutocreateState(element: document["SuppressBuildableAutocreation"])
         }
 
         // MARK: - XML
@@ -48,8 +46,12 @@ extension XCScheme {
             return element
         }
 
+        // MARK: - Writable
+
         public func write(path: Path, override: Bool) throws {
-            
+            let writePath = Management.plistPath(from: path)
+            let xmlString = xmlElement().xml
+            try writePath.write(xmlString)
         }
 
         // MARK: - Equatable
@@ -58,5 +60,13 @@ extension XCScheme {
             return lhs.userState == rhs.userState &&
                 lhs.autocreateState == rhs.autocreateState
         }
+    }
+}
+
+extension XCScheme.Management {
+    private static func plistPath(from path: Path) -> Path {
+        let managementName = XCScheme.Management.isa.lowercased()
+        let xcschemeName = XCScheme.isa.lowercased()
+        return path + "\(xcschemeName + managementName).plist"
     }
 }

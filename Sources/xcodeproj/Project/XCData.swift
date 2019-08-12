@@ -17,9 +17,9 @@ public protocol XCData: class, Equatable {
 
     var schemes: [XCScheme] { get set }
     var breakpoints: XCBreakpointList? { get }
+    var writables: [Writable] { get }
 
-    func writeSchemes(path: Path, override: Bool) throws
-    func writeBreakPoints(path: Path, override: Bool) throws
+    func write(to path: Path, override: Bool) throws
 
     static func schemes(from path: Path) throws -> [XCScheme]
 }
@@ -56,6 +56,9 @@ public extension XCData {
     var workspaceSettingsPath: Path {
         return type(of: self).workspaceSettingsPath
     }
+    var writables: [Writable] {
+        return []
+    }
 
     /// Writes all project schemes to the given path.
     ///
@@ -63,36 +66,39 @@ public extension XCData {
     /// - Parameter override: if project should be overridden. Default is true.
     ///   If true will remove all existing schemes before writing.
     ///   If false will throw error if scheme already exists at the given path.
-    func writeSchemes(path: Path, override: Bool = true) throws {
-        let path = path + schemesPath
-        if override, path.exists {
-            try path.delete()
+    func write(to path: Path, override: Bool = true) throws {
+        let schemePath = path + schemesPath
+        let breakpointPath = path + breakpointsPath
+        try [schemePath, breakpointPath].forEach { writePath in
+            if override && writePath.exists {
+                try writePath.delete()
+            }
         }
-        try path.mkpath()
+
+        try schemePath.mkpath()
+        try breakpointPath.mkpath()
+
+        // Write schemes
         for scheme in schemes {
             try scheme.write(
-                path: path + scheme.pathName,
+                path: schemePath + scheme.pathName,
                 override: override
             )
         }
-    }
 
-    /// Writes all project breakpoints to the given path.
-    ///
-    /// - Parameter path: path to `.xcodeproj` file.
-    /// - Parameter override: if project should be overridden. Default is true.
-    ///   If true will remove all existing debugger data before writing.
-    ///   If false will throw error if breakpoints file exists at the given path.
-    func writeBreakPoints(path: Path, override: Bool = true) throws {
-        let debugPath = path + debuggerPath
-        if override, debugPath.exists {
-            try debugPath.delete()
+        // Write any custom object we can't infer from here
+        for writable in writables {
+            try writable.write(path: path, override: override)
         }
-        try debugPath.mkpath()
-        try breakpoints?.write(path: path + breakpointsPath, override: override)
+
+        // Write breakpoints
+        try breakpoints?.write(
+            path: breakpointPath,
+            override: override
+        )
     }
 
     static func schemes(from path: Path) throws -> [XCScheme] {
-        return try (path + schemesPath).glob("*.xcscheme").compactMap(XCScheme.init)
+        return try path.glob("*.xcscheme").compactMap(XCScheme.init)
     }
 }

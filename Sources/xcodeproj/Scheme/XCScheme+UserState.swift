@@ -3,11 +3,17 @@ import Foundation
 import PathKit
 
 extension XCScheme {
-    public final class UserState: Equatable {
-        public struct Element: Equatable {
+    public final class SchemeUserState: Equatable {
+        public struct Element: Equatable, Codable {
             public var key: String
             public var isShared: Bool
             public var orderHint: Int
+
+            func xmlElement() -> AEXMLElement {
+                return AEXMLElement(name: key, attributes: [
+                    CodingKeys.orderHint.stringValue : String(orderHint)
+                ])
+            }
         }
 
         // MARK: - Attributes
@@ -17,15 +23,30 @@ extension XCScheme {
         // MARK: - Init
 
         public init(schemes: [XCScheme], targets: [PBXNativeTarget]) {
+            var orderHint = 0
             elements = schemes.map { scheme in
                 var key = "\(scheme.name)"
                 key += ".\(scheme.isa.lowercased())"
                 key += scheme.isShared ? "_^#shared#^_" : ""
 
+                orderHint += 1
+                scheme.orderHint = scheme.orderHint < 0 ?
+                    orderHint : scheme.orderHint
+
                 return Element(
                     key: key,
                     isShared: scheme.isShared,
                     orderHint: scheme.orderHint
+                )
+            } + targets.map { target in
+                var key = "\(target.name)"
+                key += ".\(XCScheme.isa.lowercased())"
+                orderHint += 1
+
+                return Element(
+                    key: key,
+                    isShared: false,
+                    orderHint: orderHint
                 )
             }
         }
@@ -37,25 +58,16 @@ extension XCScheme {
         // MARK: - XML
 
         func xmlElement() -> AEXMLElement {
-            let element = AEXMLElement(
-                name: "SchemeUserState",
-                value: nil,
-                attributes: [
-//                    "Generate.xcscheme_^#shared#^_" : [
-                        "orderHint" : ""
-//                    ]
-                ])
-            let actions = element.addChild(name: "PreActions")
-            let preActions = try! element["PreActions"]["ExecutionAction"].all?.map(ExecutionAction.init) ?? []
-            preActions.forEach { preAction in
-                actions.addChild(preAction.xmlElement())
+            let xml = AEXMLElement(name: SchemeUserState.isa)
+            for element in elements {
+                xml.addChild(element.xmlElement())
             }
-            return element
+            return xml
         }
 
         // MARK: - Equatable
 
-        public static func ==(lhs: UserState, rhs: UserState) -> Bool {
+        public static func ==(lhs: SchemeUserState, rhs: SchemeUserState) -> Bool {
             return lhs.elements == rhs.elements
         }
     }

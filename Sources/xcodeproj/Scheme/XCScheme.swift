@@ -52,7 +52,7 @@ public final class XCScheme: Writable, Equatable {
 
         name = path.lastComponentWithoutExtension
         isShared = true
-        orderHint = 0
+        orderHint = -1
 
         let document = try AEXMLDocument(xml: try path.read())
         let scheme = document["Scheme"]

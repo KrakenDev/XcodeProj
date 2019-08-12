@@ -3,48 +3,60 @@ import Foundation
 import PathKit
 
 extension XCScheme {
-    public final class AutocreateState: Equatable {
+    public final class AutocreateState: Writable, Equatable {
+        public struct Element: Equatable, Codable {
+            public let blueprintIdentifier: String
+            public var primary: Bool
+
+            func xmlElement() -> AEXMLElement {
+                return AEXMLElement(
+                    name: blueprintIdentifier,
+                    attributes: [
+                        CodingKeys.primary.stringValue :
+                            primary ? "YES" : "NO"
+                    ]
+                )
+            }
+        }
+
         // MARK: - Attributes
 
-        public let blueprintIdentifier: String?
-        public var shouldSuppress: Bool
+        var elements: [Element]
 
         // MARK: - Init
 
         public init(schemes: [XCScheme]) {
-            blueprintIdentifier = schemes.first!.launchAction?.runnable?
-                .buildableReference.blueprintIdentifier
-            shouldSuppress = (schemes.first!.shouldAutocreate ?? true) == false
+            elements = schemes.map { scheme in
+                return .init(
+                    blueprintIdentifier: scheme.name,
+                    primary: scheme.shouldAutocreate != true
+                )
+            }
         }
 
         init(element: AEXMLElement) throws {
-            blueprintIdentifier = element.name
-            shouldSuppress = element.children.first?.bool ?? false
+            elements = []
         }
 
         // MARK: - XML
 
         func xmlElement() -> AEXMLElement {
-            let element = AEXMLElement(
-                name: "SuppressBuildableAutocreation",
-                value: nil,
-                attributes: [
-//                    "AEXML::AEXML": [
-                        "primary" : "YES"
-//                    ]
-                ])
-            let actions = element.addChild(name: "PreActions")
-            let preActions = try! element["PreActions"]["ExecutionAction"].all?.map(ExecutionAction.init) ?? []
-            preActions.forEach { preAction in
-                actions.addChild(preAction.xmlElement())
+            let elementXML = AEXMLElement(name: "SuppressBuildableAutocreation")
+            for element in elements {
+                elementXML.addChild(element.xmlElement())
             }
-            return element
+            return elementXML
+        }
+
+        // MARK: - Writable
+
+        public func write(path: Path, override: Bool) throws {
         }
 
         // MARK: - Equatable
 
         public static func ==(lhs: AutocreateState, rhs: AutocreateState) -> Bool {
-            return lhs.shouldSuppress == rhs.shouldSuppress
+            return lhs.elements == rhs.elements
         }
     }
 }

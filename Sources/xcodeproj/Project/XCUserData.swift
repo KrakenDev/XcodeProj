@@ -17,6 +17,13 @@ public final class XCUserData: Equatable {
     /// Workspace settings (represents the WorksapceSettings.xcsettings file).
     public var workspaceSettings: WorkspaceSettings?
 
+    public var writables: [Writable] {
+        guard let management = schemeManagement else {
+            return []
+        }
+        return [management]
+    }
+
     // MARK: - Init
 
     /// Initializes the user data with its properties.
@@ -47,7 +54,7 @@ public final class XCUserData: Equatable {
         try? schemesPath.mkpath()
         try? debuggerPath.mkpath()
 
-        schemes = XCUserData.schemes(from: schemesPath)
+        schemes = try XCUserData.schemes(from: schemesPath)
         schemeManagement = try? XCScheme.Management(path: schemesPath)
         breakpoints = try? XCBreakpointList(path: path + XCUserData.breakpointsPath)
         workspaceSettings = try? WorkspaceSettings.at(
