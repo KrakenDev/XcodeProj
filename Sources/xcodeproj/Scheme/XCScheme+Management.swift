@@ -36,10 +36,13 @@ extension XCScheme {
                 }
 
                 userState = SchemeUserState(
-                    schemes: userSchemes + sharedSchemes
+                    schemes: sharedSchemes
                 )
                 suppressBuildableAutocreation = .init(
-                    targetNames: schemeNames
+                    targetNames: schemeNames.filter { name in
+                        let targetName = name.components(separatedBy: "::").last
+                        return !sharedNames.contains(targetName ?? "")
+                    }
                 )
                 return
             }
