@@ -6,8 +6,8 @@ extension XCScheme {
     public final class Management: Writable, Equatable {
         // MARK: - Attributes
 
-        public var userState: SchemeUserState
-        public var suppressBuildableAutocreation: SuppressBuildableAutocreation
+        public let userState: SchemeUserState
+        public let suppressBuildableAutocreation: SuppressBuildableAutocreation
 
         // MARK: - Init
 
@@ -41,14 +41,17 @@ extension XCScheme {
                 )
                 suppressBuildableAutocreation = .init(
                     targetNames: schemeNames.filter { name in
-                        let targetName = name.components(separatedBy: "::").last
+                        let targetName = name.components(
+                            separatedBy: .punctuationCharacters).last
                         return !sharedNames.contains(targetName ?? "")
                     }
                 )
                 return
             }
             userState = try SchemeUserState(element: document[SchemeUserState.isa])
-            suppressBuildableAutocreation = try SuppressBuildableAutocreation(element: document["SuppressBuildableAutocreation"])
+            suppressBuildableAutocreation = try SuppressBuildableAutocreation(
+                element: document[SuppressBuildableAutocreation.isa]
+            )
         }
 
         // MARK: - Writable

@@ -18,7 +18,7 @@ extension XCScheme {
 
         // MARK: - Attributes
 
-        var elements: [Element]
+        let elements: [Element]
 
         // MARK: - Init
 
