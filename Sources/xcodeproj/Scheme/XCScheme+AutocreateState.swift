@@ -6,7 +6,7 @@ extension XCScheme {
     public final class SuppressBuildableAutocreation: Equatable {
         public struct Element: Equatable, Codable {
             public let blueprintIdentifier: String
-            public var primary: Bool
+            public let primary: Bool = true
 
             func xmlElement() -> AEXMLElement {
                 let element: AEXMLElement = .dict
@@ -22,13 +22,8 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme], targets: [PBXNativeTarget]) {
-            elements = schemes.map { scheme in
-                return .init(
-                    blueprintIdentifier: scheme.name,
-                    primary: scheme.shouldAutocreate != true
-                )
-            }
+        public init(targetNames: [String]) {
+            elements = targetNames.map(Element.init)
         }
 
         init(element: AEXMLElement) throws {

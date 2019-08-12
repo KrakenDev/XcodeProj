@@ -11,9 +11,10 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme], targets: [PBXNativeTarget] = []) {
+        public init(schemes: [XCScheme], targets: [PBXTarget] = []) {
             self.userState = SchemeUserState(schemes: schemes, targets: targets)
-            self.suppressBuildableAutocreation = SuppressBuildableAutocreation(schemes: schemes, targets: targets)
+            self.suppressBuildableAutocreation = .init(
+                targetNames: targets.map { $0.name })
         }
 
         init(path: Path) throws {
@@ -28,15 +29,26 @@ extension XCScheme {
                 sharedSchemes.forEach { $0.isShared = true }
 
                 let pbxProj = try PBXProj.from(path: basePath)
-                let userTargets = pbxProj.nativeTargets
+                let dependencies = pbxProj.targetDependencies
+                let sharedNames = sharedSchemes.map { $0.name }
+
+                let separator = "::"
+                let userTargets = dependencies.compactMap { dependency in
+                    return dependency.target
+                } + pbxProj.nativeTargets.filter { target in
+                    return !sharedNames.contains(target.name)
+                }
 
                 userState = SchemeUserState(
                     schemes: userSchemes + sharedSchemes,
-                    targets: pbxProj.nativeTargets
+                    targets: userTargets
                 )
-                suppressBuildableAutocreation = SuppressBuildableAutocreation(
-                    schemes: userSchemes,
-                    targets: pbxProj.nativeTargets
+                suppressBuildableAutocreation = .init(
+                    targetNames: dependencies.compactMap { dependency in
+                        let targetName = dependency.targetReference?.value
+                            .components(separatedBy: separator).last ?? separator
+                        return !sharedNames.contains(targetName) ? dependency.targetReference?.value : nil
+                    }
                 )
                 return
             }

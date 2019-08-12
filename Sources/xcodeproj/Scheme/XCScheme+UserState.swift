@@ -23,7 +23,7 @@ extension XCScheme {
 
         // MARK: - Init
 
-        public init(schemes: [XCScheme], targets: [PBXNativeTarget]) {
+        public init(schemes: [XCScheme], targets: [PBXTarget]) {
             var orderHint = 0
             elements = schemes.map { scheme in
                 var key = "\(scheme.name)"
