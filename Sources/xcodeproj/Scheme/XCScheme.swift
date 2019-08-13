@@ -56,13 +56,16 @@ public final class XCScheme: Writable, Equatable {
         isShared = false
         orderHint = -1
 
-        let document = try AEXMLDocument(xml: try path.read())
+        var options = AEXMLOptions()
+        options.parserSettings.shouldProcessNamespaces = true
+
+        let document = try AEXMLDocument(xml: try path.read(), options: options)
         let scheme = document["Scheme"]
         lastUpgradeVersion = scheme.attributes["LastUpgradeVersion"]
         version = scheme.attributes["version"]
         buildAction = try BuildAction(element: scheme["BuildAction"])
         testAction = try TestAction(element: scheme["TestAction"])
-        launchAction = try XCScheme.LaunchAction(element: scheme["LaunchAction"])
+        launchAction = try LaunchAction(element: scheme["LaunchAction"])
         analyzeAction = try AnalyzeAction(element: scheme["AnalyzeAction"])
         archiveAction = try ArchiveAction(element: scheme["ArchiveAction"])
         profileAction = try ProfileAction(element: scheme["ProfileAction"])

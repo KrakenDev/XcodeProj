@@ -31,7 +31,7 @@ extension XCScheme {
 
                     let pbx = try PBXProj.from(path: basePath)
                     let allTargets = pbx.nativeTargets + pbx.aggregateTargets
-                    let sharedNames = sharedSchemes.map { $0.name }
+                    let sharedNames = Management.targetNames(from: sharedSchemes)
                     let schemeNames = allTargets.map { target in
                         return target.reference.value
                     }
@@ -85,6 +85,14 @@ extension XCScheme.Management {
         let xcschemeName = XCScheme.isa.lowercased()
         return path + XCUserData.schemesPath
             + Path("\(xcschemeName + managementName).plist")
+    }
+
+    private static func targetNames(from sharedSchemes: [XCScheme]) -> [String] {
+        return Array(sharedSchemes.map { scheme in
+            return scheme.buildAction?.buildActionEntries.map { entry in
+                return entry.buildableReference.blueprintIdentifier
+            } ?? []
+        }.joined())
     }
 }
 
