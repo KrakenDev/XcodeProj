@@ -28,21 +28,19 @@ extension XCScheme {
 
         public init(schemes: [XCScheme]) {
             elements = schemes.map { scheme in
-                var key = "\(scheme.name)"
+                var key = scheme.name
                 key += ".\(scheme.isa.lowercased())"
                 key += scheme.isShared ? "_^#shared#^_" : ""
 
-                let name = Path(scheme.buildAction?.buildActionEntries.first { entry in
-                    return entry.buildableReference.blueprintName == scheme.name
-                }?.buildableReference.buildableName ?? "").extension
-
-                let app = PBXProductType.application.fileExtension
-                let framework = PBXProductType.framework.fileExtension
+                let productTypes = PBXProductType.extensionMap[scheme
+                    .buildableReferences.first { reference in
+                        return reference.blueprintName == scheme.name
+                    }?.buildableName ?? ""] ?? []
 
                 scheme.orderHint =
-                    (name == app) ? 1 :
-                    (name == nil) ? 2 :
-                    (name == framework) ? 3 : 4
+                    productTypes.contains(.application) ? 1 :
+                    productTypes.contains(.framework) ? 2 :
+                    productTypes.contains(.commandLineTool) ? 3 : 4
 
                 return Element(
                     key: key,

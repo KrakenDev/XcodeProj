@@ -29,31 +29,22 @@ public enum PBXProductType: String, Decodable {
 
     /// Returns the file extension for the given product type.
     public var fileExtension: String? {
-        switch self {
-        case .application, .watchApp, .watch2App, .watch2AppContainer, .messagesApplication:
-            return "app"
-        case .framework, .staticFramework:
-            return "framework"
-        case .dynamicLibrary:
-            return "dylib"
-        case .staticLibrary:
-            return "a"
-        case .bundle:
-            return "bundle"
-        case .unitTestBundle, .uiTestBundle:
-            return "xctest"
-        case .appExtension, .tvExtension, .watchExtension, .watch2Extension, .messagesExtension, .stickerPack, .xcodeExtension, .intentsServiceExtension:
-            return "appex"
-        case .commandLineTool:
-            return nil
-        case .xpcService:
-            return "xpc"
-        case .ocUnitTestBundle:
-            return "octest"
-        case .instrumentsPackage:
-            return "instrpkg"
-        case .none:
-            return nil
-        }
+        return PBXProductType.extensionMap.first { element in
+            return element.value.contains(self)
+        }?.key
     }
+
+    static let extensionMap = [
+        "app"       : [application, watchApp, watch2App, watch2AppContainer, messagesApplication],
+        "framework" : [framework, staticFramework],
+        "dylib"     : [dynamicLibrary],
+        "a"         : [staticLibrary],
+        "bundle"    : [bundle],
+        "xctest"    : [unitTestBundle, uiTestBundle],
+        "appex"     :  [stickerPack, xcodeExtension, intentsServiceExtension, appExtension, tvExtension, watchExtension, watch2Extension, messagesExtension],
+        "xpc"       : [xpcService],
+        "octest"    : [ocUnitTestBundle],
+        "instrpkg"  : [instrumentsPackage],
+        ""          : [none, commandLineTool]
+    ]
 }

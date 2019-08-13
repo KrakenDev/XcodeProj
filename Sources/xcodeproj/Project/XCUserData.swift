@@ -37,7 +37,7 @@ public final class XCUserData: Equatable {
                 breakpoints: XCBreakpointList? = nil,
                 workspaceSettings: WorkspaceSettings? = nil) {
         self.schemes = schemes
-        self.schemeManagement = XCScheme.Management(schemes: schemes)
+        self.schemeManagement = XCScheme.Management(path: schemes)
         self.breakpoints = breakpoints
         self.workspaceSettings = workspaceSettings
     }

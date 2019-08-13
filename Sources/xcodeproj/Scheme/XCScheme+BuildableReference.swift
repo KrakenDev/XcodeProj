@@ -2,6 +2,12 @@ import AEXML
 import Foundation
 
 extension XCScheme {
+    var buildableReferences: [BuildableReference] {
+        return buildAction?.buildActionEntries.map { entry in
+            return entry.buildableReference
+        } ?? []
+    }
+
     public final class BuildableReference: Equatable {
         // MARK: - Attributes
 

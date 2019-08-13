@@ -5,13 +5,18 @@ import PathKit
 extension XCScheme {
     public final class SuppressBuildableAutocreation: Equatable {
         public struct Element: Equatable, Codable {
-            public let key: String
-            public let primary: Bool = true
+            public let blueprint: String
+            private var isSuppressed: Bool = true
+            private var identifier: String = "primary"
+
+            init(blueprint: String) {
+                self.blueprint = blueprint
+            }
 
             func xmlElement() -> AEXMLElement {
                 let element: AEXMLElement = .dict
-                element.addChild(.key(with: CodingKeys.primary.stringValue))
-                element.addChild(primary ? .true : .false)
+                element.addChild(.key(with: blueprint))
+                element.addChild(isSuppressed ? .true : .false)
                 return element
             }
         }
@@ -26,18 +31,13 @@ extension XCScheme {
             elements = targetNames.sorted(by: <).map(Element.init)
         }
 
-        init(element: AEXMLElement) throws {
-            // TODO
-            elements = []
-        }
-
         // MARK: - XML
 
         func xmlElements() -> [AEXMLElement] {
             let elementXML: AEXMLElement = .dict
 
             for element in elements {
-                elementXML.addChild(.key(with: element.key))
+                elementXML.addChild(.key(with: element.blueprint))
                 elementXML.addChild(element.xmlElement())
             }
             return [.key(with: SuppressBuildableAutocreation.isa), elementXML]
