@@ -13,11 +13,7 @@ let package = Package(
         .package(url: "https://github.com/tuist/Shell", .upToNextMinor(from: "2.0.1")),
     ],
     targets: [
-        .target(name: "XcodeProj",
-                dependencies: [
-                    "PathKit",
-                    "AEXML",
-                ]),
+        .target(name: "XcodeProj", dependencies: ["PathKit", "AEXML",]),
         .testTarget(name: "XcodeProjTests", dependencies: ["XcodeProj", "Shell"]),
     ]
 )
